@@ -25,8 +25,9 @@ export function parseTorrentLabels(rawLabels?: string[] | null): string[] {
 }
 
 export function serializeTorrentLabel(label: string): string {
-  const payload: TorrentLabelPayload = { text: label }
-  return JSON.stringify(payload)
+  // Transmission stores native string labels. Decode legacy Next UI wrappers
+  // rather than writing JSON objects back into the labels array.
+  return parseTorrentLabel(label)
 }
 
 export function serializeTorrentLabels(labels: string[]): string[] {
