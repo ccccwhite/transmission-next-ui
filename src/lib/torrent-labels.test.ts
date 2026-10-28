@@ -17,9 +17,19 @@ test("parseTorrentLabels keeps order and removes empty labels", () => {
   expect(parseTorrentLabels(['{"text":"Movie"}', "", "Music"])).toEqual(["Movie", "Music"])
 })
 
-test("serializeTorrentLabel and serializeTorrentLabels produce JSON payloads", () => {
-  expect(serializeTorrentLabel("Anime")).toBe('{"text":"Anime"}')
-  expect(serializeTorrentLabels(["Movie", "4K"])).toEqual(['{"text":"Movie"}', '{"text":"4K"}'])
+test("serializeTorrentLabel writes native Transmission string labels", () => {
+  expect(serializeTorrentLabel("Anime")).toBe("Anime")
+  expect(serializeTorrentLabel("storage:hdd")).toBe("storage:hdd")
+  expect(serializeTorrentLabel('{"text":"storage:hdd"}')).toBe("storage:hdd")
+})
+
+test("serializeTorrentLabels preserves existing PT labels and decodes legacy wrappers", () => {
+  expect(serializeTorrentLabels(["mteam", "storage:hdd", "webui-test"])).toEqual([
+    "mteam", "storage:hdd", "webui-test",
+  ])
+  expect(serializeTorrentLabels(['{"text":"storage:hdd"}', '{"text":"webui-test"}'])).toEqual([
+    "storage:hdd", "webui-test",
+  ])
 })
 
 test("getTorrentLabelsSortValue normalizes encoded labels for sorting", () => {
