@@ -86,7 +86,7 @@ test("buildEditTorrentSetArgs serializes labels for RPC", () => {
   const form = mapTorrentToEditTorrentFormState(dialogTorrent, detailedTorrent)
   const args = buildEditTorrentSetArgs(form)
 
-  expect(args.labels).toEqual(['{"text":"Linux"}', '{"text":"ISO"}'])
+  expect(args.labels).toEqual(["Linux", "ISO"])
   expect(args.seedRatioLimit).toBe(1.5)
   expect(args.trackerList).toBe("https://tracker.example/announce")
 })

@@ -132,7 +132,7 @@ describe("useEditTorrentForm", () => {
     expect(rpcMock.renameTorrentPath).toHaveBeenCalledWith(1, "Ubuntu.iso", "Ubuntu-1.iso")
     expect(rpcMock.setTorrentLocation).toHaveBeenCalledWith([1], "/downloads/linux", true)
     expect(rpcMock.setTorrent).toHaveBeenCalledWith([1], expect.objectContaining({
-      labels: ['{"text":"Linux"}', '{"text":"ISO"}'],
+      labels: ["Linux", "ISO"],
     }))
     expect(toastMock.success).toHaveBeenCalledWith("Torrent updated successfully")
     expect(onSuccess).toHaveBeenCalledOnce()
