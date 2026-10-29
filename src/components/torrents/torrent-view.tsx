@@ -78,7 +78,7 @@ function StatCard({ color, icon, title, value, secondary1, secondary2, isClicked
   const c = COLOR_CLASSES[color]
   return (
     <div
-      className="flex items-center gap-3 p-4 rounded-[2rem] bg-background/40 border border-muted/5 hover:bg-background/60 transition-all group shrink-0 overflow-hidden shadow-none cursor-pointer md:cursor-default"
+      className="flex items-center gap-3 p-4 rounded-[2rem] bg-background/40 border border-muted/5 hover:bg-background/60 transition-all group min-w-0 shadow-none cursor-pointer md:cursor-default"
       onClick={onClick}
     >
       <div className={cn(
@@ -92,20 +92,11 @@ function StatCard({ color, icon, title, value, secondary1, secondary2, isClicked
           "text-[11px] uppercase font-bold tracking-widest text-muted-foreground/50 leading-none mb-1.5 transition-colors",
           isClicked ? c.titleActive : c.titleHover
         )}>{title}</p>
-        <div className="flex items-center justify-between gap-1 overflow-hidden h-7">
-          <span className="text-lg font-extrabold tracking-tight truncate group-hover:scale-[1.02] transition-transform origin-left">{value}</span>
-          <div className="block lg:hidden xl:block relative h-4 overflow-hidden flex-1 text-right">
-            <div className={cn(
-              "flex flex-col transition-transform duration-500 ease-out group-hover:-translate-y-4",
-              isClicked && "-translate-y-4"
-            )}>
-              <span className="text-[11px] text-muted-foreground/60 font-medium whitespace-nowrap h-4 flex items-center justify-end gap-1">
-                {secondary1}
-              </span>
-              <span className={cn("text-[11px] font-bold whitespace-nowrap h-4 flex items-center justify-end gap-1", c.secondary2Text)}>
-                {secondary2}
-              </span>
-            </div>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-lg font-extrabold tracking-tight tabular-nums leading-snug [overflow-wrap:anywhere]">{value}</span>
+          <div className="flex min-w-0 flex-col gap-0.5 text-[11px] leading-relaxed [overflow-wrap:anywhere]">
+            <span className="text-muted-foreground/60 font-medium">{secondary1}</span>
+            <span className={cn("font-medium", c.secondary2Text)}>{secondary2}</span>
           </div>
         </div>
       </div>
@@ -322,7 +313,7 @@ export function TorrentView({ showStats = true }: TorrentViewProps) {
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500 ease-out">
       {showStats && stats && (
         <div className="p-2 md:p-2.5 bg-muted/20 backdrop-blur-xl rounded-[2.5rem] border border-muted/30 shadow-sm animate-in slide-in-from-top-4 duration-500 ease-out mb-2">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))] gap-3">
             <StatCard
               color="green"
               icon={<ArrowDown className="h-5 w-5" />}
