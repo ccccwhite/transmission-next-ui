@@ -82,6 +82,21 @@ async function getRow(name: string) {
 }
 
 describe("torrent workspace", () => {
+  it.each(["list", "grid"])("renders actual verification progress in the %s view", async mode => {
+    writeUiState("torrent-view-mode", mode)
+    vi.mocked(rpc.getTorrents).mockResolvedValue({ torrents: [{ ...torrents[0], status: 2, percentDone: 1, recheckProgress: 0.37 }] })
+    render(<App />)
+    const link = await screen.findByRole("link", { name: "Alpha" })
+    const container = link.closest(mode === "list" ? "tr" : '[data-slot="card"]')!
+    expect(within(container as HTMLElement).getByText(/Verification progress/)).toBeInTheDocument()
+    expect(container.textContent).toContain("37.0%")
+    expect(container.textContent).not.toContain("100.0%")
+    fireEvent.click(link)
+    await waitFor(() => expect(window.location.hash).toContain("/torrents/detail"))
+    expect(await screen.findByText("Verification progress")).toBeInTheDocument()
+    expect(screen.getByText("37.0%")).toBeInTheDocument()
+  })
+
   it("adds only the error status filter, keeps its count global and restores its route", async () => {
     vi.mocked(rpc.getTorrents).mockResolvedValue({ torrents: [
       { ...torrents[0], error: 3, errorString: "Missing file" },
@@ -240,7 +255,7 @@ describe("torrent workspace", () => {
     fireEvent.change(within(dialog).getByRole("textbox"), {
       target: { value: "/hdd/other" }
     })
-    fireEvent.click(within(dialog).getByRole("checkbox"))
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "Move existing files to the new location" }))
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Save Changes" })
     )

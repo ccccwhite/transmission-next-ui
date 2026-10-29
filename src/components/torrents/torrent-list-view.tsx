@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils"
 import { formatSpeed, formatDuration, formatSize, getStatusLabel, formatDate } from "@/lib/formatters"
 import type { ColumnConfig } from "@/lib/columns"
 import type { Torrent } from "@/lib/rpc-types"
+import { getTorrentProgress, isCheckingTorrent } from "@/lib/torrent-progress"
 import { useI18n } from "@/lib/i18n-context"
 
 type SortKey =
@@ -160,10 +161,10 @@ export function TorrentListView({
         return (
           <TableCell key={column.id}>
             <div className="w-full bg-muted rounded-full h-2 min-w-[100px]">
-              <div className="bg-primary h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(var(--primary),0.5)]" style={{ width: `${torrent.percentDone * 100}%` }} />
+              <div className="bg-primary h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(var(--primary),0.5)]" style={{ width: `${getTorrentProgress(torrent) * 100}%` }} />
             </div>
             <span className="text-label mt-1.5 block">
-              {(torrent.percentDone * 100).toFixed(1)}% • {formatSize(torrent.totalSize)}
+              {isCheckingTorrent(torrent) && <span>{t('common.verification_progress')} </span>}{(getTorrentProgress(torrent) * 100).toFixed(1)}% • {formatSize(torrent.totalSize)}
             </span>
           </TableCell>
         )

@@ -19,6 +19,7 @@ import { EditTorrentDialog } from "@/components/torrents/edit-torrent-dialog"
 import { cn } from "@/lib/utils"
 import { formatSpeed, formatDuration, getStatusLabel, formatSizeParts, splitSpeed } from "@/lib/formatters"
 import type { Torrent } from "@/lib/rpc-types"
+import { getTorrentProgress, isCheckingTorrent } from "@/lib/torrent-progress"
 import { useI18n } from "@/lib/i18n-context"
 
 interface TorrentGridViewProps {
@@ -90,13 +91,13 @@ export function TorrentGridView({
           <CardContent className="py-5 space-y-5 flex-1">
             <div className="space-y-2">
               <div className="flex justify-between text-label">
-                <span>{t('common.progress')}</span>
-                <span className="text-primary">{(torrent.percentDone * 100).toFixed(1)}%</span>
+                <span>{t(isCheckingTorrent(torrent) ? 'common.verification_progress' : 'common.progress')}</span>
+                <span className="text-primary">{(getTorrentProgress(torrent) * 100).toFixed(1)}%</span>
               </div>
               <div className="w-full bg-muted/50 rounded-full h-2.5 overflow-hidden">
                 <div
                   className="bg-primary h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary),0.4)]"
-                  style={{ width: `${torrent.percentDone * 100}%` }}
+                  style={{ width: `${getTorrentProgress(torrent) * 100}%` }}
                 ></div>
               </div>
             </div>

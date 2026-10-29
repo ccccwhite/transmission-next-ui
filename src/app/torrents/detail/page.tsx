@@ -34,6 +34,7 @@ import { RemoveTorrentDialog } from "@/components/torrents/remove-torrent-dialog
 import { TorrentFileSelector } from "@/components/torrents/torrent-file-selector"
 
 import { rpc } from "@/lib/rpc-client"
+import { getTorrentProgress, isCheckingTorrent } from "@/lib/torrent-progress"
 import { useI18n } from "@/lib/i18n-context"
 import { useAppSettings } from "@/lib/app-settings-context"
 import { type Torrent, type TrackerStat, type Peer, TorrentStatus } from "@/lib/rpc-types"
@@ -70,7 +71,7 @@ function TorrentDetailsContent() {
       const id = isNaN(Number(idValue)) ? idValue : Number(idValue)
 
       const torrentsData = await rpc.getTorrents([
-        "id", "name", "status", "totalSize", "percentDone",
+        "id", "name", "status", "totalSize", "percentDone", "recheckProgress",
         "rateDownload", "rateUpload", "eta", "addedDate",
         "hashString", "downloadDir", "comment", "isPrivate",
         "creator", "dateCreated", "uploadedEver", "downloadedEver",
@@ -248,16 +249,16 @@ function TorrentDetailsContent() {
           <Card className="shadow-md border-none bg-sidebar/40 py-0 flex flex-col overflow-hidden">
             <CardHeader className="pt-4 pb-2 border-b border-muted/20 px-4">
               <CardTitle className="text-[10px] md:text-xs font-medium uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Activity className="h-3.5 w-3.5" /> {t('common.progress')}
+                <Activity className="h-3.5 w-3.5" /> {t(isCheckingTorrent(tor) ? 'common.verification_progress' : 'common.progress')}
               </CardTitle>
             </CardHeader>
             <CardContent className="py-4 md:py-6 flex flex-col gap-2 px-4">
               <div className="flex justify-between items-baseline">
-                <span className="text-2xl md:text-3xl font-medium text-primary">{(tor.percentDone * 100).toFixed(1)}%</span>
+                <span className="text-2xl md:text-3xl font-medium text-primary">{(getTorrentProgress(tor) * 100).toFixed(1)}%</span>
                 <span className="text-[10px] md:text-xs font-medium text-muted-foreground">{formatSize(tor.downloadedEver)} / {formatSize(tor.totalSize)}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-1.5 md:h-2 overflow-hidden">
-                <div className="bg-primary h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary),0.5)]" style={{ width: `${tor.percentDone * 100}%` }}></div>
+                <div className="bg-primary h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(var(--primary),0.5)]" style={{ width: `${getTorrentProgress(tor) * 100}%` }}></div>
               </div>
             </CardContent>
           </Card>

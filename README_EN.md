@@ -19,6 +19,8 @@ The sidebar also includes an Errors filter for nonzero Transmission error codes 
 - The browser remembers the status page, search, filters, sorting, view mode, page size/page, visible columns/order, sidebar/section expansion and details tab. Preferences are local to the browser and origin; a LAN IP and external hostname have separate settings.
 - A URL without a hash restores the last torrent page. Explicit hashes (including `#/`) and detail links take precedence. Refreshing or returning from details preserves list preferences; changing filters resets the page. Selected tasks and RPC actions are never restored or replayed.
 - Removal still requires confirmation and retains downloaded files by default. Set location accepts paths inside the Transmission container, with a choice to move existing files or only update the location.
+- Set location offers an opt-in Verify afterwards checkbox. Without a move, verification is queued after updating the location. With a move, the UI waits for the request and confirms every destination plus the absence of local move errors before queuing verification. Retry verification never repeats a move. Keep the page open until verification has been queued.
+- List, card and detail views display `recheckProgress` while verifying, show zero while queued, and return to download progress after checking ends.
 
 ### Build this fork with the fix
 

@@ -1,6 +1,7 @@
 import { getStatusLabel } from "./formatters.ts"
 import type { Torrent } from "./rpc-types.ts"
 import { getTorrentLabelsSortValue, parseTorrentLabel } from "./torrent-labels.ts"
+import { getTorrentProgress } from "./torrent-progress"
 
 export type SortKey =
   | "name"
@@ -107,6 +108,8 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
 
 export function getTorrentSortValue(torrent: Torrent, key: SortKey): number | string {
   switch (key) {
+    case "percentDone":
+      return getTorrentProgress(torrent)
     case "labels":
       return getTorrentLabelsSortValue(torrent.labels)
     case "editDate":

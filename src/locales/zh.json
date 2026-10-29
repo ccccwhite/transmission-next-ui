@@ -1,5 +1,16 @@
 {
   "common": {
+    "verify_after_location": "完成后校验",
+    "verify_after_move_hint": "移动成功后，自动提交完整校验。",
+    "verify_after_relocate_hint": "更新保存位置后，立即提交完整校验。",
+    "location_verify_queued": "保存位置已更新，校验已提交",
+    "location_verify_failed": "位置已更新，但提交校验失败；可以重试校验，无需再次移动文件",
+    "location_unconfirmed": "目标位置或移动结果未确认，尚未提交校验。请检查任务保存位置及本地错误",
+    "verify_retry_hint": "重试只会确认目标位置并提交校验，不会再次移动文件。也可以取消后手动处理。",
+    "retry_verify": "重试校验",
+    "submitting_verify": "正在提交校验…",
+    "saving_location": "正在更新保存位置…",
+    "verification_progress": "校验进度",
     "error": "错误",
     "error_filter_hint": "Transmission 上报的 Tracker 警告、Tracker 错误和本地文件错误",
     "unlabeled": "无标签",
