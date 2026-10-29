@@ -8,9 +8,12 @@ import type { Torrent, SessionStats } from "@/lib/rpc-types"
 export function useTorrentData(
   showStats: boolean,
   viewMode: "list" | "grid",
-  visibleColumns: string[]
+  visibleColumns: string[],
+  enabled = true,
+  sortKey?: string
 ) {
   const [torrents, setTorrents] = useState<Torrent[]>([])
+  const [loaded, setLoaded] = useState(false)
   const [stats, setStats] = useState<SessionStats | null>(null)
   const [freeSpace, setFreeSpace] = useState<{ path: string; "size-bytes": number; total_size: number } | null>(null)
   const { refreshInterval, autoRefresh } = useAppSettings()
@@ -18,8 +21,10 @@ export function useTorrentData(
   const fetchData = useCallback(async () => {
     try {
       const torrentFields = getRequiredRpcFields(visibleColumns, viewMode)
+      if (sortKey && !torrentFields.includes(sortKey)) torrentFields.push(sortKey)
       const torrentsData = await rpc.getTorrents(torrentFields)
       setTorrents(torrentsData.torrents)
+      setLoaded(true)
 
       if (showStats) {
         const [statsData, sessionData] = await Promise.all([
@@ -40,16 +45,17 @@ export function useTorrentData(
     } catch (err) {
       console.error("Failed to fetch Transmission data:", err)
     }
-  }, [showStats, viewMode, visibleColumns])
+  }, [showStats, viewMode, visibleColumns, sortKey])
 
   useEffect(() => {
+    if (!enabled) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData()
     if (!autoRefresh) return
 
     const timer = setInterval(fetchData, refreshInterval)
     return () => clearInterval(timer)
-  }, [fetchData, refreshInterval, autoRefresh])
+  }, [fetchData, refreshInterval, autoRefresh, enabled])
 
-  return { torrents, stats, freeSpace, fetchData }
+  return { torrents, stats, freeSpace, fetchData, loaded }
 }

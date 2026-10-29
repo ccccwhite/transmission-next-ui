@@ -45,12 +45,17 @@ import {
   getWantedFileIndexes,
 } from "@/lib/torrent-file-selection"
 
+import { usePersistentState } from "@/hooks/use-persistent-state"
+import { getLastTorrentRoute } from "@/lib/ui-state"
+
+const isDetailTab = (value: unknown): value is string => typeof value === "string" && ["general", "files", "trackers", "peers"].includes(value)
+
 function TorrentDetailsContent() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t, locale } = useI18n()
   const idValue = searchParams.get('id')
-  const [activeTab, setActiveTab] = useState("general")
+  const [activeTab, setActiveTab] = usePersistentState("torrent-detail-tab", "general", isDetailTab)
   const [torrent, setTorrent] = useState<Torrent | null>(null)
   const [loading, setLoading] = useState(true)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -130,7 +135,7 @@ function TorrentDetailsContent() {
           <h2 className="text-2xl font-bold">Torrent Not Found</h2>
           <p className="text-muted-foreground max-w-xs mx-auto mt-2">The torrent you're looking for might have been removed or doesn't exist.</p>
         </div>
-        <Button onClick={() => navigate("/")} variant="outline" className="rounded-xl px-8">
+        <Button onClick={() => navigate(getLastTorrentRoute())} variant="outline" className="rounded-xl px-8">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
       </div>
@@ -159,7 +164,7 @@ function TorrentDetailsContent() {
     try {
       await rpc.removeTorrents([tor.id], deleteLocalData)
       setIsDeleteDialogOpen(false)
-      navigate("/")
+      navigate(getLastTorrentRoute())
     } catch (err) {
       console.error("Failed to remove torrent:", err)
     }
@@ -205,7 +210,7 @@ function TorrentDetailsContent() {
               variant="outline"
               size="icon"
               className="rounded-full shadow-sm hover:translate-x-[-2px] transition-transform shrink-0"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(getLastTorrentRoute())}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>

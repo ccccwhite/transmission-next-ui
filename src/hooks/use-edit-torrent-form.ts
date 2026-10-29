@@ -13,10 +13,13 @@ import {
 
 export function useEditTorrentForm(
   torrent: EditTorrentDialogTorrent,
-  onSuccess?: () => void
+  onSuccess?: () => void,
+  controlled?: { open: boolean; onOpenChange: (open: boolean) => void }
 ) {
   const { t } = useI18n()
-  const [open, setOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const open = controlled?.open ?? internalOpen
+  const setOpen = controlled?.onOpenChange ?? setInternalOpen
   const [form, setForm] = React.useState<EditTorrentFormState>(() => createInitialEditTorrentFormState(torrent))
   const [isLoading, setIsLoading] = React.useState(false)
   const [isFetching, setIsFetching] = React.useState(false)
@@ -90,7 +93,7 @@ export function useEditTorrentForm(
     } finally {
       setIsLoading(false)
     }
-  }, [form, onSuccess, t, torrent])
+  }, [form, onSuccess, t, torrent, setOpen])
 
   return {
     open,

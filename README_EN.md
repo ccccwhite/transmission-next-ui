@@ -10,6 +10,14 @@ This repository is forked from [hisproc/transmission-next-ui](https://github.com
 - **Verification**: All 36 unit tests passed; production Vite build succeeded; appending a label was verified against a disposable torrent using LinuxServer Transmission 4.1.3 on Unraid 6.12.13.
 - **Scope**: This confirms the tested label workflow, not full end-to-end coverage of every feature or environment. Back up existing labels before editing production torrents.
 
+## UI enhancements in this fork
+
+- The left sidebar lists labels, trackers and save directories with torrent counts, including an Untagged filter and collapsible sections. Click to select one entry; Ctrl / Command-click to select several. Filter groups intersect.
+- Both list and card views offer a context menu: resume, force resume, stop, verify, reannounce, set labels, set location, edit, details and remove. Right-clicking a selected item targets the selection; right-clicking another item targets that item only. List rows support click, Ctrl / Command-click and Shift-click selection.
+- The browser remembers the status page, search, filters, sorting, view mode, page size/page, visible columns/order, sidebar/section expansion and details tab. Preferences are local to the browser and origin; a LAN IP and external hostname have separate settings.
+- A URL without a hash restores the last torrent page. Explicit hashes (including `#/`) and detail links take precedence. Refreshing or returning from details preserves list preferences; changing filters resets the page. Selected tasks and RPC actions are never restored or replayed.
+- Removal still requires confirmation and retains downloaded files by default. Set location accepts paths inside the Transmission container, with a choice to move existing files or only update the location.
+
 ### Build this fork with the fix
 
 Requires Node.js 22 and pnpm 10:

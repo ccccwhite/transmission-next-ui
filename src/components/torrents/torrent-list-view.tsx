@@ -1,5 +1,8 @@
 "use client"
 
+import type { MouseEvent } from "react"
+import { TorrentContextMenu, type TorrentContextActions } from "./torrent-context-menu"
+
 import type { CSSProperties } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
@@ -37,6 +40,9 @@ type SortKey =
   | "labels"
 
 interface TorrentListViewProps {
+  contextActions: TorrentContextActions
+  onRowSelect: (id: number, event: MouseEvent) => void
+  onRefresh: () => void
   paginatedTorrents: Torrent[]
   visibleColumns: string[]
   allColumns: Array<ColumnConfig & { label: string }>
@@ -59,6 +65,9 @@ function SortIcon({ column, sortConfig }: { column: SortKey; sortConfig: Torrent
 }
 
 export function TorrentListView({
+  contextActions,
+  onRowSelect,
+  onRefresh,
   paginatedTorrents,
   visibleColumns,
   allColumns,
@@ -203,8 +212,10 @@ export function TorrentListView({
           </TableHeader>
           <TableBody>
             {paginatedTorrents.map((torrent) => (
+              <TorrentContextMenu key={torrent.id} torrent={torrent} {...contextActions}>
               <TableRow
-                key={torrent.id}
+                onClick={event => onRowSelect(torrent.id, event)}
+                aria-selected={selectedIds.includes(torrent.id)}
                 className={cn(
                   "hover:bg-muted/30 transition-colors border-b last:border-0 border-muted/50 group/row",
                   selectedIds.includes(torrent.id) && "bg-primary/5 hover:bg-primary/10"
@@ -212,6 +223,7 @@ export function TorrentListView({
               >
                 <TableCell className="pl-6">
                   <div
+                    data-row-action
                     className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
                     onClick={() => onToggleSelect(torrent.id)}
                   >
@@ -225,7 +237,7 @@ export function TorrentListView({
                 {orderedVisibleColumns.map((column) => renderCell(torrent, column))}
                 <TableCell className="w-[130px] pr-6">
                   <div className="flex items-center justify-center gap-1">
-                    <EditTorrentDialog torrent={torrent}>
+                    <EditTorrentDialog torrent={torrent} onSuccess={onRefresh}>
                       <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors">
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -245,6 +257,7 @@ export function TorrentListView({
                   </div>
                 </TableCell>
               </TableRow>
+              </TorrentContextMenu>
             ))}
           </TableBody>
         </Table>

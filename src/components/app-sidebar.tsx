@@ -38,6 +38,9 @@ import { cn } from "@/lib/utils"
 import { useLocation } from "react-router-dom"
 import { useI18n } from "@/lib/i18n-context"
 import { APP_CONFIG } from "@/lib/config"
+import { SidebarFilters } from "@/components/torrents/sidebar-filters"
+import { useTorrentWorkspace } from "@/lib/torrent-workspace-context"
+import { filterTorrents } from "@/lib/torrent-list-utils"
 
 const data = {
   navMain: [
@@ -81,6 +84,7 @@ import { Link } from "react-router-dom"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { pathname } = useLocation()
   const { t } = useI18n()
+  const { torrents } = useTorrentWorkspace()
 
   const getTitle = (title: string) => {
     const keyMap: Record<string, string> = {
@@ -124,6 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <Link to={item.url}>
                         <item.icon className={cn("transition-transform duration-300", isActive && "scale-110")} />
                         <span className="font-semibold group-data-[collapsible=icon]:hidden">{getTitle(item.title)}</span>
+                        <span className="ml-auto text-xs tabular-nums opacity-60 group-data-[collapsible=icon]:hidden">{filterTorrents(torrents, { statusFilter: item.url === "/" ? undefined : item.url.slice(1), translateStatus: t }).length}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -132,6 +137,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <SidebarFilters />
         <SidebarGroup className="mt-auto border-t border-muted/30 pt-4">
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">

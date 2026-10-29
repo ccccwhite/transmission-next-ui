@@ -1,5 +1,13 @@
 {
   "common": {
+    "unlabeled": "Untagged",
+    "filter_multiselect_hint": "Ctrl / ⌘ click to select multiple; groups intersect",
+    "force_resume": "Force resume",
+    "selected_count": "{count} torrents selected",
+    "set_location": "Set location",
+    "torrent_details": "Torrent details",
+    "move_existing_files": "Move existing files to the new location",
+    "location_path_hint": "Use a path inside the Transmission container, for example /hdd/mteam. Uncheck if the files are already there.",
     "dashboard": "Dashboard",
     "all_torrents": "All Torrents",
     "all_labels": "All Labels",

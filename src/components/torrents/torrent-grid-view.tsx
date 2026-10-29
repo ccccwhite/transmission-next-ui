@@ -1,5 +1,8 @@
 "use client"
 
+import type { MouseEvent } from "react"
+import { TorrentContextMenu, type TorrentContextActions } from "./torrent-context-menu"
+
 import { Link } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardAction } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,11 +22,17 @@ import type { Torrent } from "@/lib/rpc-types"
 import { useI18n } from "@/lib/i18n-context"
 
 interface TorrentGridViewProps {
+  contextActions: TorrentContextActions
+  onRowSelect: (id: number, event: MouseEvent) => void
+  onRefresh: () => void
   paginatedTorrents: Torrent[]
   onSingleAction: (id: number, action: "start" | "stop" | "remove") => void
 }
 
 export function TorrentGridView({
+  contextActions,
+  onRowSelect,
+  onRefresh,
   paginatedTorrents,
   onSingleAction,
 }: TorrentGridViewProps) {
@@ -32,9 +41,11 @@ export function TorrentGridView({
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {paginatedTorrents.map((torrent) => (
+        <TorrentContextMenu key={torrent.id} torrent={torrent} {...contextActions}>
         <Card
-          key={torrent.id}
-          className="group relative shadow-md border-none overflow-hidden hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 bg-sidebar/30 flex flex-col py-0"
+          onClick={event => onRowSelect(torrent.id, event)}
+          aria-selected={contextActions.selectedIds.includes(torrent.id)}
+          className={cn(contextActions.selectedIds.includes(torrent.id) && "ring-2 ring-primary", "group relative shadow-md border-none overflow-hidden hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 bg-sidebar/30 flex flex-col py-0")}
         >
           <CardHeader className="pb-3 pt-4 border-b border-muted/50 bg-background/50">
             <div className="min-w-0 space-y-1">
@@ -66,7 +77,7 @@ export function TorrentGridView({
               </div>
             </div>
             <CardAction className="flex gap-1 shrink-0">
-              <EditTorrentDialog torrent={torrent}>
+              <EditTorrentDialog torrent={torrent} onSuccess={onRefresh}>
                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-opacity rounded-full">
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -143,6 +154,7 @@ export function TorrentGridView({
             </div>
           </CardFooter>
         </Card>
+        </TorrentContextMenu>
       ))}
     </div>
   )

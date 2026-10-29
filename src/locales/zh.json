@@ -1,5 +1,13 @@
 {
   "common": {
+    "unlabeled": "无标签",
+    "filter_multiselect_hint": "Ctrl / ⌘ 点击可多选；不同分组交叉筛选",
+    "force_resume": "强制开始",
+    "selected_count": "已选择 {count} 个种子",
+    "set_location": "设置保存位置",
+    "torrent_details": "种子详情",
+    "move_existing_files": "移动现有文件到新位置",
+    "location_path_hint": "填写 Transmission 容器内路径，例如 /hdd/mteam；取消勾选表示文件已在目标目录。",
     "dashboard": "仪表盘",
     "all_torrents": "全部种子",
     "active": "活动",

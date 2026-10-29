@@ -31,6 +31,7 @@ interface RPCMethodArguments {
   "session-set": Partial<Session>
   "session-stats": undefined
   "torrent-start": { ids?: TorrentId[] }
+  "torrent-start-now": { ids?: TorrentId[] }
   "torrent-stop": { ids?: TorrentId[] }
   "torrent-remove": { ids: TorrentId[]; "delete-local-data": boolean }
   "torrent-add": TorrentAddArgs
@@ -49,6 +50,7 @@ interface RPCMethodResponses {
   "session-set": Record<string, never>
   "session-stats": SessionStats
   "torrent-start": Record<string, never>
+  "torrent-start-now": Record<string, never>
   "torrent-stop": Record<string, never>
   "torrent-remove": Record<string, never>
   "torrent-add": TorrentAddResponse
@@ -159,6 +161,10 @@ class TransmissionRPC {
   async stopTorrents(ids?: TorrentId[]) {
     const args = ids && ids.length > 0 ? { ids } : {}
     return this.request("torrent-stop", args)
+  }
+
+  async startTorrentsNow(ids: TorrentId[]) {
+    return this.request("torrent-start-now", { ids })
   }
 
   async removeTorrents(ids: TorrentId[], deleteData = false) {

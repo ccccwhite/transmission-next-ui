@@ -17,6 +17,9 @@ export type SortKey =
 
 export type SortConfig = { key: SortKey; direction: "asc" | "desc" }
 
+// NUL cannot occur in a native Transmission label, so this cannot collide with one.
+export const UNLABELED_FILTER = "\u0000unlabeled"
+
 export interface TorrentFilterOptions {
   statusFilter?: string
   searchQuery?: string
@@ -90,7 +93,10 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
 
     if (trackerFilter.length > 0 && !torrent.trackerStats?.some((stat) => trackerFilter.includes(stat.host))) return false
     if (dirFilter.length > 0 && !dirFilter.includes(torrent.downloadDir)) return false
-    if (labelFilter.length > 0 && !torrent.labels?.some((label) => labelFilter.includes(parseTorrentLabel(label)))) return false
+    if (labelFilter.length > 0) {
+      const labels = torrent.labels?.map(parseTorrentLabel).filter(Boolean) ?? []
+      if (!(labels.length === 0 && labelFilter.includes(UNLABELED_FILTER)) && !labels.some(label => labelFilter.includes(label))) return false
+    }
     if (searchLower && !torrent.name.toLowerCase().includes(searchLower)) return false
 
     return true

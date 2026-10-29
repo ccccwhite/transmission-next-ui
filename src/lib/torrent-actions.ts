@@ -1,5 +1,5 @@
 export type SingleTorrentAction = "start" | "stop" | "remove"
-export type BatchTorrentAction = SingleTorrentAction | "verify" | "reannounce"
+export type BatchTorrentAction = SingleTorrentAction | "verify" | "reannounce" | "start-now"
 export type TorrentActionMode = "single" | "batch"
 export type TorrentRpcAction = Exclude<BatchTorrentAction, "remove">
 export type Translate = (key: string, fallback?: string) => string
@@ -33,6 +33,7 @@ export function createTorrentActionPlan(
   const clearSelection = mode === "batch"
 
   switch (action) {
+    case "start-now":
     case "start":
       return {
         type: "rpc",
