@@ -82,6 +82,32 @@ async function getRow(name: string) {
 }
 
 describe("torrent workspace", () => {
+  it("adds only the error status filter, keeps its count global and restores its route", async () => {
+    vi.mocked(rpc.getTorrents).mockResolvedValue({ torrents: [
+      { ...torrents[0], error: 3, errorString: "Missing file" },
+      { ...torrents[1], error: 2, errorString: "Tracker rejected request" },
+      { ...torrents[2], error: 0 }
+    ] })
+    const first = render(<App />)
+    await getRow("Alpha")
+    fireEvent.click(screen.getByRole("link", { name: /^Errors/ }))
+    await waitFor(() => expect(window.location.hash).toBe("#/error"))
+    expect(screen.queryByRole("link", { name: "Gamma" })).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /^Errors/ })).toHaveTextContent("2")
+    fireEvent.click(within(screen.getByRole("region", { name: "By Label" })).getByRole("button", { name: "mteam (1)" }))
+    expect(screen.queryByRole("link", { name: "Beta" })).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /^Errors/ })).toHaveTextContent("2")
+    expect(screen.queryByRole("link", { name: /^Moving/ })).not.toBeInTheDocument()
+    await waitFor(() => expect(localStorage.getItem("torrent-last-route")).toBe('"/error"'))
+    first.unmount()
+    window.history.replaceState(null, "", "/")
+    restoreTorrentRoute()
+    render(<App />)
+    await getRow("Alpha")
+    expect(window.location.hash).toBe("#/error")
+    expect(screen.queryByRole("link", { name: "Gamma" })).not.toBeInTheDocument()
+  })
+
   it("restores the last page when the bare URL is opened in the same tab", async () => {
     render(<App />)
     await getRow("Alpha")

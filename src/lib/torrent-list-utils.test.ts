@@ -128,3 +128,14 @@ test("sortTorrents sorts by regular and derived fields", () => {
   expect(sortTorrents(torrents, { key: "labels", direction: "asc" }).map(({ id }) => id)).toEqual([3, 1, 2])
   expect(getTorrentSortValue(torrents[0], "labels")).toBe("Linux\u0000ISO")
 })
+
+test("error filtering uses reported error codes and intersects with other filters", () => {
+  const examples = [
+    { ...torrents[0], error: 1 },
+    { ...torrents[1], error: 2 },
+    { ...torrents[2], error: 3 },
+    { ...torrents[0], id: 4, error: 0, errorString: "old error message" }
+  ]
+  expect(filterTorrents(examples, { statusFilter: "error", translateStatus }).map(torrent => torrent.id)).toEqual([1, 2, 3])
+  expect(filterTorrents(examples, { statusFilter: "error", labelFilter: ["Movie"], searchQuery: "remux", translateStatus }).map(torrent => torrent.id)).toEqual([2])
+})

@@ -20,6 +20,7 @@ function AppRoutes() {
       <Route path="/downloading" element={<TorrentView key="downloading" statusFilter="downloading" showStats={false} />} />
       <Route path="/paused" element={<TorrentView key="paused" statusFilter="Paused" showStats={false} />} />
       <Route path="/seeding" element={<TorrentView key="seeding" statusFilter="Seeding" showStats={false} />} />
+      <Route path="/error" element={<TorrentView key="error" statusFilter="error" showStats={false} />} />
       <Route path="/settings" element={<SettingsPage key="settings" />} />
       <Route path="/torrents/detail" element={<TorrentDetailsPage key="detail" />} />
     </Routes>

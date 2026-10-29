@@ -1,5 +1,7 @@
 {
   "common": {
+    "error": "Errors",
+    "error_filter_hint": "Tracker warnings, tracker errors and local file errors reported by Transmission",
     "unlabeled": "Untagged",
     "filter_multiselect_hint": "Ctrl / ⌘ click to select multiple; groups intersect",
     "force_resume": "Force resume",

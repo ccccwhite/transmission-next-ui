@@ -86,6 +86,8 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
         if (![6, 5].includes(torrent.status)) return false
       } else if (statusLower === "stopped" || statusLower === "paused") {
         if (torrent.status !== 0) return false
+      } else if (statusLower === "error") {
+        if (!(torrent.error > 0)) return false
       } else if (!translateStatus(getStatusLabel(torrent.status)).toLowerCase().includes(statusLower)) {
         return false
       }

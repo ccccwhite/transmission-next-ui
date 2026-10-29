@@ -1,5 +1,7 @@
 {
   "common": {
+    "error": "错误",
+    "error_filter_hint": "Transmission 上报的 Tracker 警告、Tracker 错误和本地文件错误",
     "unlabeled": "无标签",
     "filter_multiselect_hint": "Ctrl / ⌘ 点击可多选；不同分组交叉筛选",
     "force_resume": "强制开始",

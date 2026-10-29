@@ -12,6 +12,8 @@ This repository is forked from [hisproc/transmission-next-ui](https://github.com
 
 ## UI enhancements in this fork
 
+The sidebar also includes an Errors filter for nonzero Transmission error codes (tracker warnings, tracker errors and local file errors). Transmission RPC exposes no queryable file-moving status, so no speculative Moving filter is provided. Other status filters are unchanged.
+
 - The left sidebar lists labels, trackers and save directories with torrent counts, including an Untagged filter and collapsible sections. Click to select one entry; Ctrl / Command-click to select several. Filter groups intersect.
 - Both list and card views offer a context menu: resume, force resume, stop, verify, reannounce, set labels, set location, edit, details and remove. Right-clicking a selected item targets the selection; right-clicking another item targets that item only. List rows support click, Ctrl / Command-click and Shift-click selection.
 - The browser remembers the status page, search, filters, sorting, view mode, page size/page, visible columns/order, sidebar/section expansion and details tab. Preferences are local to the browser and origin; a LAN IP and external hostname have separate settings.
