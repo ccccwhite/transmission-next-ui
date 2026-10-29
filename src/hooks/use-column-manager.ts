@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo } from "react"
 import { TORRENT_COLUMNS, DEFAULT_VISIBLE_COLUMNS, type ColumnConfig } from "@/lib/columns"
 import { PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
+import { readUiState, writeUiState, isStringArray } from "@/lib/ui-state"
 import { useI18n } from "@/lib/i18n-context"
 
 export type LabeledColumnConfig = ColumnConfig & { label: string }
 
 function normalizeVisibleColumns(columns: string[]) {
-  const uniqueColumns = Array.from(new Set(columns.filter((column) => column !== "name")))
+  const uniqueColumns = Array.from(new Set(columns.filter((column) => column !== "name" && TORRENT_COLUMNS.some(config => config.id === column))))
   return ["name", ...uniqueColumns]
 }
 
@@ -17,8 +18,7 @@ export function useColumnManager() {
   const { t } = useI18n()
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
-    const saved = localStorage.getItem('torrent-visible-columns')
-    return saved ? normalizeVisibleColumns(JSON.parse(saved) as string[]) : DEFAULT_VISIBLE_COLUMNS
+    return normalizeVisibleColumns(readUiState("torrent-visible-columns", DEFAULT_VISIBLE_COLUMNS, isStringArray))
   })
 
   const columnDnDSensors = useSensors(
@@ -27,7 +27,7 @@ export function useColumnManager() {
   )
 
   useEffect(() => {
-    localStorage.setItem('torrent-visible-columns', JSON.stringify(visibleColumns))
+    writeUiState("torrent-visible-columns", visibleColumns)
   }, [visibleColumns])
 
   const toggleColumn = (id: string) => {

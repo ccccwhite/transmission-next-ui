@@ -23,6 +23,9 @@ class TransmissionRPCMock {
       case "session-stats":
         return MOCK_STATS as any;
       case "session-set":
+      case "torrent-start-now":
+      case "torrent-verify":
+      case "torrent-reannounce":
       case "torrent-start":
       case "torrent-stop":
       case "torrent-remove":
@@ -68,6 +71,18 @@ class TransmissionRPCMock {
 
   async startTorrents(ids?: (number | string)[]) {
     return this.request("torrent-start", { ids });
+  }
+
+  async startTorrentsNow(ids: (number | string)[]) {
+    return this.request("torrent-start-now", { ids });
+  }
+
+  async verifyTorrents(ids?: (number | string)[]) {
+    return this.request("torrent-verify", { ids });
+  }
+
+  async reannounceTorrents(ids?: (number | string)[]) {
+    return this.request("torrent-reannounce", { ids });
   }
 
   async stopTorrents(ids?: (number | string)[]) {

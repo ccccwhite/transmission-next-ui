@@ -9,32 +9,7 @@
 
 ---
 
-## 本 Fork 的标签兼容修复
-
-本仓库 Fork 自 [hisproc/transmission-next-ui](https://github.com/hisproc/transmission-next-ui)，保留原项目的界面与功能，并修复 Transmission 原生标签写入兼容性问题（[PR #1](https://github.com/ccccwhite/transmission-next-ui/pull/1)）。
-
-- **修复前**：设置或追加标签时，可能将 `storage:hdd` 写成字符串 `{"text":"storage:hdd"}`，造成原生 WebUI 出现额外标签，并影响按字符串精确匹配标签的脚本。
-- **修复后**：向 Transmission RPC 写入普通字符串标签，例如 `["storage:hdd","webui-test"]`；已有的 `{"text":"..."}` 旧包装标签在再次保存时可转换为普通字符串。
-- **验证**：36/36 项单元测试通过，Vite 生产构建成功；已在 Unraid 6.12.13 + LinuxServer Transmission 4.1.3 上，使用测试种子验证“追加标签”后 RPC 返回普通字符串。
-- **范围**：验证覆盖标签追加场景，并不代表所有界面和运行环境已经完成端到端测试。更改正式种子前请先备份标签。
-
-### 从本 Fork 构建（包含修复）
-
-需要 Node.js 22 和 pnpm 10：
-
-```bash
-git clone https://github.com/ccccwhite/transmission-next-ui.git
-cd transmission-next-ui
-corepack enable
-corepack prepare pnpm@10 --activate
-pnpm install --frozen-lockfile
-pnpm test
-pnpm build
-```
-
-将 `dist/` 下的文件部署为 Transmission 自定义 WebUI。对于使用 `linuxserver/transmission` 的 Docker 容器，可以将宿主机 WebUI 文件目录映射到 `/webui`，并设置 `TRANSMISSION_WEB_HOME=/webui`。只更新静态页面文件，不要覆盖 `/config` 或种子数据目录。更新已挂载目录时应保留目录本身，避免移动或重命名挂载源目录。
-
-> **注意**：下文的上游安装方法和上游 Releases 未必包含本 Fork 的标签修复；需要此修复请使用本仓库 `main` 分支自行构建。
+> 本 Fork 的更新、标签兼容修复及构建部署说明见 [Fork 说明](docs/FORK.md)；预编译安装包见 [Releases](https://github.com/ccccwhite/transmission-next-ui/releases)。
 
 ## 技术栈
 

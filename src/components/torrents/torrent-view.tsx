@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo, type ReactNode } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef, type MouseEvent, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -29,18 +29,18 @@ import {
 import { BatchReplaceTrackerDialog } from "@/components/torrents/batch-replace-tracker-dialog"
 import { BatchMoveDirectoryDialog } from "@/components/torrents/batch-move-directory-dialog"
 import { BatchSetLabelsSelectedDialog } from "@/components/torrents/batch-set-labels-selected-dialog"
+import { useTorrentWorkspace } from "@/lib/torrent-workspace-context"
+import type { Torrent } from "@/lib/rpc-types"
+import { EditTorrentDialog } from "@/components/torrents/edit-torrent-dialog"
+import { MoveSelectedTorrentsDialog } from "@/components/torrents/move-selected-torrents-dialog"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { RemoveTorrentDialog } from "@/components/torrents/remove-torrent-dialog"
 
 import { useI18n } from "@/lib/i18n-context"
-import { useSearch } from "@/lib/search-context"
 import { rpc } from "@/lib/rpc-client"
 import { formatSize, formatSpeed } from "@/lib/formatters"
-import { useTorrentData } from "@/hooks/use-torrent-data"
-import { useTorrentFilters } from "@/hooks/use-torrent-filters"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useColumnManager } from "@/hooks/use-column-manager"
 import { TorrentListView } from "@/components/torrents/torrent-list-view"
 import { TorrentGridView } from "@/components/torrents/torrent-grid-view"
 import { TorrentToolbar } from "@/components/torrents/torrent-toolbar"
@@ -49,7 +49,7 @@ import {
   type BatchTorrentAction,
   type SingleTorrentAction,
 } from "@/lib/torrent-actions"
-import { sortTorrents, type SortConfig, type SortKey } from "@/lib/torrent-list-utils"
+import { sortTorrents, type SortKey } from "@/lib/torrent-list-utils"
 
 type CardColor = "green" | "blue" | "orange" | "purple"
 
@@ -119,56 +119,32 @@ interface TorrentViewProps {
   showStats?: boolean
 }
 
-export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps) {
+export function TorrentView({ showStats = true }: TorrentViewProps) {
   const isMobile = useIsMobile()
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
-  const [selectedIds, setSelectedIds] = useState<number[]>([])
-  const [sortConfig, setSortConfig] = useState<SortConfig | null>({ key: "addedDate", direction: "desc" })
+  const [rawSelectedIds, setSelectedIds] = useState<number[]>([])
+  const [labelIds, setLabelIds] = useState<number[]>([])
+  const [moveIds, setMoveIds] = useState<number[]>([])
+  const [editingTorrent, setEditingTorrent] = useState<Torrent | null>(null)
+  const selectionAnchor = useRef<number | null>(null)
   const { t, locale } = useI18n()
-  const { searchQuery } = useSearch()
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isBatchReplaceOpen, setIsBatchReplaceOpen] = useState(false)
   const [isBatchMoveOpen, setIsBatchMoveOpen] = useState(false)
   const [isBatchSetLabelsOpen, setIsBatchSetLabelsOpen] = useState(false)
   const [idsToDelete, setIdsToDelete] = useState<number[]>([])
   const [clickedCard, setClickedCard] = useState<string | null>(null)
-  const [pageSize, setPageSize] = useState<number>(() => {
-    const saved = localStorage.getItem('torrent-page-size')
-    return saved ? parseInt(saved, 10) : 100
-  })
-  const [currentPage, setCurrentPage] = useState(1)
-
   const {
-    visibleColumns,
-    columnDnDSensors,
-    toggleColumn,
-    resetVisibleColumns,
-    handleColumnDragEnd,
-    allColumns,
-    hiddenColumns,
-    orderedVisibleColumnConfigs,
-    tableMinWidth,
-  } = useColumnManager()
-
-  useEffect(() => {
-    localStorage.setItem('torrent-page-size', pageSize.toString())
-  }, [pageSize])
-
-  const { torrents, stats, freeSpace, fetchData } = useTorrentData(showStats, viewMode, visibleColumns)
-
-  const {
-    trackerFilter,
-    dirFilter,
-    labelFilter,
-    toggleTracker,
-    toggleDir,
-    toggleLabel,
-    clearFilters,
-    trackers,
-    downloadDirs,
-    availableLabels,
-    filteredTorrents,
-  } = useTorrentFilters(torrents, statusFilter, searchQuery)
+    viewMode, setViewMode, sortConfig, setSortConfig,
+    pageSize, setPageSize, currentPage: savedPage, setCurrentPage,
+    visibleColumns, columnDnDSensors, toggleColumn, resetVisibleColumns,
+    handleColumnDragEnd, allColumns, hiddenColumns,
+    orderedVisibleColumnConfigs, tableMinWidth,
+    torrents, stats, freeSpace, fetchData, loaded,
+    trackerFilter, dirFilter, labelFilter, toggleTracker, toggleDir,
+    toggleLabel, clearFilters, trackers, downloadDirs, availableLabels, filteredTorrents,
+  } = useTorrentWorkspace()
+  const filteredIds = useMemo(() => new Set(filteredTorrents.map(torrent => torrent.id)), [filteredTorrents])
+  const selectedIds = rawSelectedIds.filter(id => filteredIds.has(id))
 
   const totalDownloadSpeed = useMemo(() =>
     torrents.reduce((acc, tor) => acc + (tor.rateDownload || 0), 0)
@@ -194,6 +170,9 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
 
     try {
       switch (plan.action) {
+        case "start-now":
+          await rpc.startTorrentsNow(plan.ids)
+          break
         case "start":
           await rpc.startTorrents(plan.ids)
           break
@@ -261,14 +240,13 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
     setSortConfig(direction === null ? null : { key, direction })
   }
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentPage(1)
-  }, [statusFilter, searchQuery, trackerFilter, dirFilter, labelFilter, sortConfig])
-
   const sortedTorrents = useMemo(() => sortTorrents(filteredTorrents, sortConfig), [filteredTorrents, sortConfig])
 
   const totalPages = Math.ceil(sortedTorrents.length / pageSize)
+  const currentPage = Math.max(1, Math.min(savedPage, totalPages || 1))
+  useEffect(() => {
+    if (loaded && savedPage !== currentPage) setCurrentPage(currentPage)
+  }, [loaded, savedPage, currentPage, setCurrentPage])
   const paginatedTorrents = useMemo(() => {
     if (totalPages <= 1) return sortedTorrents
     const start = (currentPage - 1) * pageSize
@@ -289,6 +267,40 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
         ? prev.filter(i => i !== id)
         : [...prev, id]
     )
+  }
+
+  const handleRowSelect = (id: number, event: MouseEvent) => {
+    if ((event.target as HTMLElement).closest("a, button, input, [data-row-action]")) return
+    const anchorIndex = sortedTorrents.findIndex(torrent => torrent.id === selectionAnchor.current)
+    const targetIndex = sortedTorrents.findIndex(torrent => torrent.id === id)
+    if (event.shiftKey && anchorIndex >= 0 && targetIndex >= 0) {
+      const range = sortedTorrents.slice(Math.min(anchorIndex, targetIndex), Math.max(anchorIndex, targetIndex) + 1).map(torrent => torrent.id)
+      setSelectedIds(event.ctrlKey || event.metaKey ? Array.from(new Set([...selectedIds, ...range])) : range)
+    } else if (event.ctrlKey || event.metaKey) {
+      toggleSelect(id)
+      selectionAnchor.current = id
+    } else {
+      setSelectedIds([id])
+      selectionAnchor.current = id
+    }
+  }
+
+  const openLabels = (ids: number[]) => {
+    setLabelIds([...ids])
+    setIsBatchSetLabelsOpen(true)
+  }
+  const contextActions = {
+    selectedIds,
+    onContextSelect: (id: number) => {
+      if (!selectedIds.includes(id)) setSelectedIds([id])
+      selectionAnchor.current = id
+    },
+    onContextAction: (ids: number[], action: BatchTorrentAction) => {
+      void executeTorrentAction(ids, action, ids.length > 1 ? "batch" : "single")
+    },
+    onContextLabels: openLabels,
+    onContextMove: (ids: number[]) => setMoveIds([...ids]),
+    onContextEdit: setEditingTorrent,
   }
 
   const handleGlobalAction = async (action: "start" | "stop") => {
@@ -397,11 +409,17 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
             onToggleSelectAll={toggleSelectAll}
             onSort={handleSort}
             onSingleAction={handleSingleAction}
+            contextActions={contextActions}
+            onRowSelect={handleRowSelect}
+            onRefresh={fetchData}
           />
         ) : (
           <TorrentGridView
             paginatedTorrents={paginatedTorrents}
             onSingleAction={handleSingleAction}
+            contextActions={contextActions}
+            onRowSelect={handleRowSelect}
+            onRefresh={fetchData}
           />
         )}
 
@@ -537,7 +555,7 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="rounded-xl py-2.5 px-3 cursor-pointer gap-3 font-medium focus:bg-muted"
-                    onClick={() => setIsBatchSetLabelsOpen(true)}
+                    onClick={() => openLabels(selectedIds)}
                   >
                     <Tag className="h-4 w-4 opacity-60" />
                     {t('common.set_torrent_labels')}
@@ -557,6 +575,9 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
           </div>
         </div>
       )}
+
+      {editingTorrent && <EditTorrentDialog torrent={editingTorrent} open onOpenChange={open => { if (!open) setEditingTorrent(null) }} onSuccess={fetchData} />}
+      {moveIds.length > 0 && <MoveSelectedTorrentsDialog ids={moveIds} onClose={() => setMoveIds([])} onSuccess={fetchData} />}
 
       <RemoveTorrentDialog
         open={isDeleteDialogOpen}
@@ -580,7 +601,7 @@ export function TorrentView({ statusFilter, showStats = true }: TorrentViewProps
       <BatchSetLabelsSelectedDialog
         open={isBatchSetLabelsOpen}
         onOpenChange={setIsBatchSetLabelsOpen}
-        selectedIds={selectedIds}
+        selectedIds={labelIds}
         onSuccess={fetchData}
       />
     </div>

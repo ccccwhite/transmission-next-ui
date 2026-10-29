@@ -26,18 +26,20 @@ import { useEditTorrentForm } from "@/hooks/use-edit-torrent-form"
 
 interface EditTorrentDialogProps {
   torrent: EditTorrentDialogTorrent
-  children: React.ReactNode
+  children?: React.ReactNode
   onSuccess?: () => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 type AdvancedTab = typeof EDIT_TORRENT_ADVANCED_TABS[number]["id"]
 
-export function EditTorrentDialog({ torrent, children, onSuccess }: EditTorrentDialogProps) {
+export function EditTorrentDialog({ torrent, children, onSuccess, open: controlledOpen, onOpenChange }: EditTorrentDialogProps) {
   const { t } = useI18n()
   const [advancedOpen, setAdvancedOpen] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<AdvancedTab>("speed")
   const { open, setOpen, form, updateField, toggleField, handleSubmit, isLoading, isFetching } =
-    useEditTorrentForm(torrent, onSuccess)
+    useEditTorrentForm(torrent, onSuccess, controlledOpen !== undefined && onOpenChange ? { open: controlledOpen, onOpenChange } : undefined)
 
   React.useEffect(() => {
     if (open) return
@@ -48,9 +50,9 @@ export function EditTorrentDialog({ torrent, children, onSuccess }: EditTorrentD
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      {children && <DialogTrigger asChild>
         {children}
-      </DialogTrigger>
+      </DialogTrigger>}
       <DialogContent className="sm:max-w-[540px] rounded-3xl border-none shadow-2xl bg-card/95 backdrop-blur-xl max-h-[90vh] overflow-y-auto no-scrollbar">
         <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-3">

@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePersistentState } from "@/hooks/use-persistent-state"
+import { isBoolean } from "@/lib/ui-state"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
@@ -70,7 +72,7 @@ function SidebarProvider({
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen)
+  const [_open, _setOpen] = usePersistentState("torrent-sidebar-open", defaultOpen, isBoolean)
   const open = openProp ?? _open
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
@@ -84,7 +86,7 @@ function SidebarProvider({
       // This sets the cookie to keep the sidebar state.
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
     },
-    [setOpenProp, open]
+    [setOpenProp, open, _setOpen]
   )
 
   // Helper to toggle the sidebar.

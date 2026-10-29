@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Tag, RefreshCw, X, ListCheck } from "lucide-react"
+import { RefreshCw, ListCheck } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { TorrentLabelPicker } from "./torrent-label-picker"
 import { toast } from "sonner"
 import { rpc } from "@/lib/rpc-client"
 import { parseTorrentLabels, serializeTorrentLabels } from "@/lib/torrent-labels"
@@ -31,42 +31,53 @@ export function BatchSetLabelsSelectedDialog({
   onSuccess,
 }: BatchSetLabelsSelectedDialogProps) {
   const [labels, setLabels] = React.useState<string[]>([])
-  const [draftLabel, setDraftLabel] = React.useState("")
   const [mode, setMode] = React.useState<"overwrite" | "append">("overwrite")
   const [isApplying, setIsApplying] = React.useState(false)
   const [availableLabels, setAvailableLabels] = React.useState<string[]>([])
+  const [currentLabels, setCurrentLabels] = React.useState<{ label: string; count: number }[]>([])
+  const [unlabeledCount, setUnlabeledCount] = React.useState(0)
+  const [loadingLabels, setLoadingLabels] = React.useState(false)
+  const [labelsLoadFailed, setLabelsLoadFailed] = React.useState(false)
   const { t } = useI18n()
 
   React.useEffect(() => {
-    if (open) {
-      const fetchLabels = async () => {
-        try {
-          const { torrents } = await rpc.getTorrents(["labels"])
-          const labelSet = new Set<string>()
-          torrents.forEach((tor: { labels?: string[] }) => {
-            parseTorrentLabels(tor.labels).forEach((l) => labelSet.add(l))
-          })
-          setAvailableLabels(Array.from(labelSet).sort())
-        } catch (error) {
-          console.error("Failed to fetch labels:", error)
+    if (!open) return
+    let active = true
+    const fetchLabels = async () => {
+      setLoadingLabels(true)
+      setLabelsLoadFailed(false)
+      setCurrentLabels([])
+      setUnlabeledCount(0)
+      try {
+        const { torrents } = await rpc.getTorrents(["id", "labels"])
+        const labelSet = new Set(torrents.flatMap(torrent => parseTorrentLabels(torrent.labels)))
+        const selected = new Set(selectedIds)
+        const counts = new Map<string, number>()
+        let unlabeled = 0
+        for (const torrent of torrents) {
+          if (!selected.has(torrent.id)) continue
+          const existing = new Set(parseTorrentLabels(torrent.labels))
+          if (!existing.size) unlabeled++
+          existing.forEach(label => counts.set(label, (counts.get(label) ?? 0) + 1))
         }
+        if (active) {
+          setAvailableLabels(Array.from(labelSet).sort())
+          setCurrentLabels(Array.from(counts, ([label, count]) => ({ label, count })).sort((a, b) => a.label.localeCompare(b.label)))
+          setUnlabeledCount(unlabeled)
+        }
+      } catch (error) {
+        console.error("Failed to fetch labels:", error)
+        if (active) setLabelsLoadFailed(true)
+      } finally {
+        if (active) setLoadingLabels(false)
       }
-      fetchLabels()
     }
-  }, [open])
-
-  const addLabel = (value?: string) => {
-    const label = (value ?? draftLabel).trim()
-    if (!label || labels.includes(label)) return
-    setLabels((prev) => [...prev, label])
-    setDraftLabel("")
-  }
-
-  const removeLabel = (index: number) => {
-    setLabels((prev) => prev.filter((_, i) => i !== index))
-  }
+    void fetchLabels()
+    return () => { active = false }
+  }, [open, selectedIds])
 
   const handleApply = async () => {
+    if (isApplying || !selectedIds.length || !labels.length) return
     setIsApplying(true)
     let successCount = 0
     try {
@@ -106,13 +117,8 @@ export function BatchSetLabelsSelectedDialog({
 
   const resetState = () => {
     setLabels([])
-    setDraftLabel("")
     setMode("overwrite")
   }
-
-  const filteredSuggestions = availableLabels.filter(
-    (l) => l.toLowerCase().includes(draftLabel.toLowerCase()) && !labels.includes(l)
-  )
 
   return (
     <Dialog
@@ -137,6 +143,42 @@ export function BatchSetLabelsSelectedDialog({
         </DialogHeader>
 
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
+          <section aria-label={t("common.current_torrent_labels")} className="space-y-2">
+            <h3 className="text-xs font-bold text-muted-foreground px-1">{t("common.current_torrent_labels")}</h3>
+            {loadingLabels ? (
+              <p role="status" className="text-xs text-muted-foreground px-1">{t("common.loading_labels")}</p>
+            ) : labelsLoadFailed ? (
+              <p role="status" className="text-xs text-muted-foreground px-1">{t("common.current_labels_load_failed")}</p>
+            ) : (
+              <div className="rounded-2xl border border-muted/50 bg-muted/20 p-3 space-y-3 max-h-40 overflow-y-auto">
+                {currentLabels.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("common.current_labels_empty")}</p>
+                ) : [true, false].map(common => {
+                  const group = currentLabels.filter(item => (item.count === selectedIds.length) === common)
+                  if (!group.length) return null
+                  return (
+                    <div key={String(common)} className="space-y-2">
+                      {selectedIds.length > 1 && (
+                        <p className="text-xs text-muted-foreground">{t(common ? "common.labels_on_all_selected" : "common.labels_on_some_selected")}</p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {group.map(({ label, count }) => (
+                          <span key={label} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/10 px-2 py-1 text-xs break-all">
+                            {label}
+                            {selectedIds.length > 1 && <span className="text-muted-foreground whitespace-nowrap">{count}/{selectedIds.length}</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                {currentLabels.length > 0 && unlabeledCount > 0 && (
+                  <p className="text-xs text-muted-foreground">{t("common.selected_without_labels", { count: unlabeledCount })}</p>
+                )}
+              </div>
+            )}
+          </section>
+
           {/* Mode toggle */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">
@@ -145,6 +187,8 @@ export function BatchSetLabelsSelectedDialog({
             <div className="flex gap-2">
               <button
                 type="button"
+                disabled={isApplying}
+                aria-pressed={mode === "overwrite"}
                 onClick={() => setMode("overwrite")}
                 className={`flex-1 h-10 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all border ${
                   mode === "overwrite"
@@ -156,6 +200,8 @@ export function BatchSetLabelsSelectedDialog({
               </button>
               <button
                 type="button"
+                disabled={isApplying}
+                aria-pressed={mode === "append"}
                 onClick={() => setMode("append")}
                 className={`flex-1 h-10 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all border ${
                   mode === "append"
@@ -173,62 +219,9 @@ export function BatchSetLabelsSelectedDialog({
             </p>
           </div>
 
-          {/* Tag input */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">
-              {t("common.labels")}
-            </label>
-            <div className="flex flex-wrap gap-2 p-3 rounded-2xl bg-muted/20 border border-muted/10 min-h-[52px]">
-              {labels.map((label, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-1.5 p-1 px-2.5 bg-primary/10 text-primary rounded-xl text-xs font-medium animate-in zoom-in-95 duration-200"
-                >
-                  <Tag className="h-3 w-3 opacity-60" />
-                  {label}
-                  <button
-                    type="button"
-                    onClick={() => removeLabel(i)}
-                    className="p-0.5 rounded-full hover:bg-primary/20 transition-colors"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-              <div className="relative flex-1 min-w-[120px]">
-                <Input
-                  value={draftLabel}
-                  onChange={(e) => setDraftLabel(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault()
-                      addLabel()
-                    } else if (e.key === "Backspace" && !draftLabel && labels.length > 0) {
-                      removeLabel(labels.length - 1)
-                    }
-                  }}
-                  className="h-8 border-none bg-transparent focus-visible:ring-0 px-1 text-xs font-medium placeholder:text-muted-foreground/30"
-                  placeholder={t("common.labels_placeholder")}
-                />
-              </div>
-            </div>
-
-            {/* Suggestions */}
-            {draftLabel && filteredSuggestions.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 px-1">
-                {filteredSuggestions.slice(0, 8).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => addLabel(s)}
-                    className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-lg bg-muted/40 hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Tag className="h-2.5 w-2.5" />
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">{t("common.labels")}</p>
+            <TorrentLabelPicker labels={labels} onChange={setLabels} availableLabels={availableLabels} disabled={isApplying} loading={loadingLabels} loadFailed={labelsLoadFailed} />
           </div>
         </div>
 
@@ -236,7 +229,7 @@ export function BatchSetLabelsSelectedDialog({
           <Button
             className="w-full h-12 rounded-2xl font-medium tracking-widest uppercase transition-all shadow-lg shadow-primary/20 bg-primary hover:scale-[1.01] active:scale-[0.99] text-xs"
             onClick={handleApply}
-            disabled={isApplying || labels.length === 0}
+            disabled={isApplying || !selectedIds.length || labels.length === 0}
           >
             {isApplying ? (
               <RefreshCw className="h-4 w-4 animate-spin" />

@@ -1,6 +1,7 @@
 import { getStatusLabel } from "./formatters.ts"
 import type { Torrent } from "./rpc-types.ts"
 import { getTorrentLabelsSortValue, parseTorrentLabel } from "./torrent-labels.ts"
+import { getTorrentProgress } from "./torrent-progress"
 
 export type SortKey =
   | "name"
@@ -16,6 +17,9 @@ export type SortKey =
   | "labels"
 
 export type SortConfig = { key: SortKey; direction: "asc" | "desc" }
+
+// NUL cannot occur in a native Transmission label, so this cannot collide with one.
+export const UNLABELED_FILTER = "\u0000unlabeled"
 
 export interface TorrentFilterOptions {
   statusFilter?: string
@@ -83,6 +87,8 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
         if (![6, 5].includes(torrent.status)) return false
       } else if (statusLower === "stopped" || statusLower === "paused") {
         if (torrent.status !== 0) return false
+      } else if (statusLower === "error") {
+        if (!(torrent.error > 0)) return false
       } else if (!translateStatus(getStatusLabel(torrent.status)).toLowerCase().includes(statusLower)) {
         return false
       }
@@ -90,7 +96,10 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
 
     if (trackerFilter.length > 0 && !torrent.trackerStats?.some((stat) => trackerFilter.includes(stat.host))) return false
     if (dirFilter.length > 0 && !dirFilter.includes(torrent.downloadDir)) return false
-    if (labelFilter.length > 0 && !torrent.labels?.some((label) => labelFilter.includes(parseTorrentLabel(label)))) return false
+    if (labelFilter.length > 0) {
+      const labels = torrent.labels?.map(parseTorrentLabel).filter(Boolean) ?? []
+      if (!(labels.length === 0 && labelFilter.includes(UNLABELED_FILTER)) && !labels.some(label => labelFilter.includes(label))) return false
+    }
     if (searchLower && !torrent.name.toLowerCase().includes(searchLower)) return false
 
     return true
@@ -99,6 +108,8 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
 
 export function getTorrentSortValue(torrent: Torrent, key: SortKey): number | string {
   switch (key) {
+    case "percentDone":
+      return getTorrentProgress(torrent)
     case "labels":
       return getTorrentLabelsSortValue(torrent.labels)
     case "editDate":

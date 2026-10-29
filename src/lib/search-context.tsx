@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePersistentState } from "@/hooks/use-persistent-state"
+import { isString } from "@/lib/ui-state"
 
 interface SearchContextType {
   searchQuery: string
@@ -10,7 +12,7 @@ interface SearchContextType {
 const SearchContext = React.createContext<SearchContextType | undefined>(undefined)
 
 export function SearchProvider({ children }: { children: React.ReactNode }) {
-  const [searchQuery, setSearchQuery] = React.useState("")
+  const [searchQuery, setSearchQuery] = usePersistentState("torrent-search", "", isString)
 
   return (
     <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>

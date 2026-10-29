@@ -7,6 +7,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   PauseCircle,
+  CircleAlert,
   Settings,
 } from "lucide-react"
 
@@ -38,6 +39,9 @@ import { cn } from "@/lib/utils"
 import { useLocation } from "react-router-dom"
 import { useI18n } from "@/lib/i18n-context"
 import { APP_CONFIG } from "@/lib/config"
+import { SidebarFilters } from "@/components/torrents/sidebar-filters"
+import { useTorrentWorkspace } from "@/lib/torrent-workspace-context"
+import { filterTorrents } from "@/lib/torrent-list-utils"
 
 const data = {
   navMain: [
@@ -66,6 +70,11 @@ const data = {
       url: "/paused",
       icon: PauseCircle,
     },
+    {
+      title: "Errors",
+      url: "/error",
+      icon: CircleAlert,
+    },
   ],
   secondary: [
     {
@@ -81,6 +90,7 @@ import { Link } from "react-router-dom"
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { pathname } = useLocation()
   const { t } = useI18n()
+  const { torrents } = useTorrentWorkspace()
 
   const getTitle = (title: string) => {
     const keyMap: Record<string, string> = {
@@ -89,6 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       "Downloading": "common.downloading",
       "Seeding": "common.seeding",
       "Paused": "common.paused",
+      "Errors": "common.error",
       "Settings": "common.settings"
     }
     return t(keyMap[title] || title)
@@ -114,16 +125,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      tooltip={getTitle(item.title)}
+                      tooltip={item.url === "/error" ? t("common.error_filter_hint") : getTitle(item.title)}
                       isActive={isActive}
                       className={cn(
                         "h-11 text-base [&_svg]:size-5 gap-3 transition-all duration-300 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:gap-0",
                         isActive && "bg-primary! text-primary-foreground! shadow-md shadow-primary/20 scale-[1.02] border-none"
                       )}
                     >
-                      <Link to={item.url}>
-                        <item.icon className={cn("transition-transform duration-300", isActive && "scale-110")} />
+                      <Link to={item.url} title={item.url === "/error" ? t("common.error_filter_hint") : undefined}>
+                        <item.icon className={cn("transition-transform duration-300", isActive && "scale-110", item.url === "/error" && !isActive && "text-destructive")} />
                         <span className="font-semibold group-data-[collapsible=icon]:hidden">{getTitle(item.title)}</span>
+                        <span className="ml-auto text-xs tabular-nums opacity-60 group-data-[collapsible=icon]:hidden">{filterTorrents(torrents, { statusFilter: item.url === "/" ? undefined : item.url.slice(1), translateStatus: t }).length}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -132,6 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <SidebarFilters />
         <SidebarGroup className="mt-auto border-t border-muted/30 pt-4">
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">

@@ -1,5 +1,8 @@
 "use client"
 
+import type { MouseEvent } from "react"
+import { TorrentContextMenu, type TorrentContextActions } from "./torrent-context-menu"
+
 import type { CSSProperties } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,6 +24,7 @@ import { cn } from "@/lib/utils"
 import { formatSpeed, formatDuration, formatSize, getStatusLabel, formatDate } from "@/lib/formatters"
 import type { ColumnConfig } from "@/lib/columns"
 import type { Torrent } from "@/lib/rpc-types"
+import { getTorrentProgress, isCheckingTorrent } from "@/lib/torrent-progress"
 import { useI18n } from "@/lib/i18n-context"
 
 type SortKey =
@@ -37,6 +41,9 @@ type SortKey =
   | "labels"
 
 interface TorrentListViewProps {
+  contextActions: TorrentContextActions
+  onRowSelect: (id: number, event: MouseEvent) => void
+  onRefresh: () => void
   paginatedTorrents: Torrent[]
   visibleColumns: string[]
   allColumns: Array<ColumnConfig & { label: string }>
@@ -59,6 +66,9 @@ function SortIcon({ column, sortConfig }: { column: SortKey; sortConfig: Torrent
 }
 
 export function TorrentListView({
+  contextActions,
+  onRowSelect,
+  onRefresh,
   paginatedTorrents,
   visibleColumns,
   allColumns,
@@ -151,10 +161,10 @@ export function TorrentListView({
         return (
           <TableCell key={column.id}>
             <div className="w-full bg-muted rounded-full h-2 min-w-[100px]">
-              <div className="bg-primary h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(var(--primary),0.5)]" style={{ width: `${torrent.percentDone * 100}%` }} />
+              <div className="bg-primary h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(var(--primary),0.5)]" style={{ width: `${getTorrentProgress(torrent) * 100}%` }} />
             </div>
             <span className="text-label mt-1.5 block">
-              {(torrent.percentDone * 100).toFixed(1)}% • {formatSize(torrent.totalSize)}
+              {isCheckingTorrent(torrent) && <span>{t('common.verification_progress')} </span>}{(getTorrentProgress(torrent) * 100).toFixed(1)}% • {formatSize(torrent.totalSize)}
             </span>
           </TableCell>
         )
@@ -203,8 +213,10 @@ export function TorrentListView({
           </TableHeader>
           <TableBody>
             {paginatedTorrents.map((torrent) => (
+              <TorrentContextMenu key={torrent.id} torrent={torrent} {...contextActions}>
               <TableRow
-                key={torrent.id}
+                onClick={event => onRowSelect(torrent.id, event)}
+                aria-selected={selectedIds.includes(torrent.id)}
                 className={cn(
                   "hover:bg-muted/30 transition-colors border-b last:border-0 border-muted/50 group/row",
                   selectedIds.includes(torrent.id) && "bg-primary/5 hover:bg-primary/10"
@@ -212,6 +224,7 @@ export function TorrentListView({
               >
                 <TableCell className="pl-6">
                   <div
+                    data-row-action
                     className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
                     onClick={() => onToggleSelect(torrent.id)}
                   >
@@ -225,7 +238,7 @@ export function TorrentListView({
                 {orderedVisibleColumns.map((column) => renderCell(torrent, column))}
                 <TableCell className="w-[130px] pr-6">
                   <div className="flex items-center justify-center gap-1">
-                    <EditTorrentDialog torrent={torrent}>
+                    <EditTorrentDialog torrent={torrent} onSuccess={onRefresh}>
                       <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors">
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -245,6 +258,7 @@ export function TorrentListView({
                   </div>
                 </TableCell>
               </TableRow>
+              </TorrentContextMenu>
             ))}
           </TableBody>
         </Table>

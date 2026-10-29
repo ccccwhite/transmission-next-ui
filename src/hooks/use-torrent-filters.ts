@@ -1,5 +1,7 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
+import { usePersistentState } from "@/hooks/use-persistent-state"
+import { isStringArray } from "@/lib/ui-state"
 import { useI18n } from "@/lib/i18n-context"
 import type { Torrent } from "@/lib/rpc-types"
 import {
@@ -15,9 +17,9 @@ export function useTorrentFilters(
   searchQuery: string
 ) {
   const { t } = useI18n()
-  const [trackerFilter, setTrackerFilter] = useState<string[]>([])
-  const [dirFilter, setDirFilter] = useState<string[]>([])
-  const [labelFilter, setLabelFilter] = useState<string[]>([])
+  const [trackerFilter, setTrackerFilter] = usePersistentState<string[]>("torrent-filter-trackers", [], isStringArray)
+  const [dirFilter, setDirFilter] = usePersistentState<string[]>("torrent-filter-dirs", [], isStringArray)
+  const [labelFilter, setLabelFilter] = usePersistentState<string[]>("torrent-filter-labels", [], isStringArray)
 
   const trackers = useMemo(() => getAvailableTrackers(torrents), [torrents])
 
@@ -65,6 +67,9 @@ export function useTorrentFilters(
   }
 
   return {
+    setTrackerFilter,
+    setDirFilter,
+    setLabelFilter,
     trackerFilter,
     dirFilter,
     labelFilter,
