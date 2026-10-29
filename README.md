@@ -26,7 +26,7 @@
 
 ## 预览
 
-[**在线演示 (Live Demo)**](https://transmission-next-ui-demo.pages.dev)
+[**在线演示 (Live Demo)**](https://transmission-next-ui-demo-hb.sharptiger12.chatgpt.site)
 
 | Light Mode | Dark Mode |
 | :---: | :---: |
