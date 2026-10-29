@@ -94,9 +94,16 @@ function StatCard({ color, icon, title, value, secondary1, secondary2, isClicked
         )}>{title}</p>
         <div className="flex min-w-0 flex-col gap-1.5">
           <span className="text-lg font-extrabold tracking-tight tabular-nums leading-snug [overflow-wrap:anywhere]">{value}</span>
-          <div className="flex min-w-0 flex-col gap-0.5 text-[11px] leading-relaxed [overflow-wrap:anywhere]">
-            <span className="text-muted-foreground/60 font-medium">{secondary1}</span>
-            <span className={cn("font-medium", c.secondary2Text)}>{secondary2}</span>
+          <div className="grid min-w-0 text-[11px] leading-relaxed [overflow-wrap:anywhere]">
+            <span className={cn(
+              "col-start-1 row-start-1 text-muted-foreground/60 font-medium transition-[opacity,transform] duration-300 group-hover:opacity-0 group-hover:-translate-y-1",
+              isClicked && "opacity-0 -translate-y-1"
+            )}>{secondary1}</span>
+            <span className={cn(
+              "col-start-1 row-start-1 font-medium transition-[opacity,transform] duration-300 group-hover:opacity-100 group-hover:translate-y-0",
+              isClicked ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1",
+              c.secondary2Text
+            )}>{secondary2}</span>
           </div>
         </div>
       </div>
