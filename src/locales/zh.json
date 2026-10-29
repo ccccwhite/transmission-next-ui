@@ -1,5 +1,15 @@
 {
   "common": {
+    "choose_or_create_label": "选择已有标签或输入新标签",
+    "show_existing_labels": "显示已有标签",
+    "available_labels": "已有标签",
+    "add_label": "添加标签",
+    "create_label": "创建“{label}”",
+    "remove_label": "移除标签“{label}”",
+    "loading_labels": "正在读取已有标签…",
+    "load_labels_failed": "读取已有标签失败，仍可输入并添加新标签。",
+    "no_more_labels": "没有其他匹配的标签，可输入新标签添加。",
+    "label_picker_hint": "点击下拉列表选取；输入新标签后按 Enter 或点击“添加标签”。",
     "verify_after_location": "完成后校验",
     "verify_after_move_hint": "移动成功后，自动提交完整校验。",
     "verify_after_relocate_hint": "更新保存位置后，立即提交完整校验。",

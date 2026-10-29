@@ -1,5 +1,15 @@
 {
   "common": {
+    "choose_or_create_label": "Choose an existing label or enter a new one",
+    "show_existing_labels": "Show existing labels",
+    "available_labels": "Existing labels",
+    "add_label": "Add label",
+    "create_label": "Create \"{label}\"",
+    "remove_label": "Remove label \"{label}\"",
+    "loading_labels": "Loading existing labels…",
+    "load_labels_failed": "Could not load existing labels. You can still enter and add a new label.",
+    "no_more_labels": "No other matching labels. Enter a new label to add one.",
+    "label_picker_hint": "Select from the dropdown, or enter a new label and press Enter or click Add label.",
     "verify_after_location": "Verify afterwards",
     "verify_after_move_hint": "Queue a full verification after the move succeeds.",
     "verify_after_relocate_hint": "Queue a full verification immediately after updating the location.",
