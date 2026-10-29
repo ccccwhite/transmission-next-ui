@@ -17,7 +17,7 @@ English | [简体中文](README.md)
 
 ## Preview
 
-[**Live Demo**](https://transmission-next-ui-demo.pages.dev)
+[**Live Demo**](https://transmission-next-ui-demo-hb.sharptiger12.chatgpt.site)
 
 | Light Mode | Dark Mode |
 | :---: | :---: |
