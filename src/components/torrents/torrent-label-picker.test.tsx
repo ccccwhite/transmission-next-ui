@@ -1,4 +1,5 @@
 import { useState } from "react"
+import userEvent from "@testing-library/user-event"
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { expect, test, vi, beforeEach } from "vitest"
 import { I18nProvider } from "@/lib/i18n-context"
@@ -140,10 +141,8 @@ test.each(["overwrite", "append"])(
     })
     fireEvent.click(screen.getByRole("button", { name: "Add label" }))
     if (mode === "append")
-      fireEvent.click(
-        screen.getByRole("button", { name: "Append" })
-      )
-    fireEvent.click(screen.getByRole("button", { name: /^Apply to/ }))
+      await userEvent.click(screen.getByRole("button", { name: "Append" }))
+    await userEvent.click(screen.getByRole("button", { name: /^Apply to/ }))
     await waitFor(() => expect(close).toHaveBeenCalledWith(false))
     expect(rpc.setTorrent).toHaveBeenCalledWith([7], {
       labels:

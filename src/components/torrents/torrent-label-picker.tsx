@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { ChevronDown, Plus, Tag, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useI18n } from "@/lib/i18n-context"
@@ -22,9 +22,21 @@ export function TorrentLabelPicker({
   const { t } = useI18n()
   const listId = useId()
   const input = useRef<HTMLInputElement>(null)
+  const root = useRef<HTMLDivElement>(null)
   const [draft, setDraft] = useState("")
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+  useEffect(() => {
+    if (!open) return
+    // Dismiss after the outside click, not on input blur. Collapsing this
+    // inline dropdown on pointer-down would recenter the dialog before
+    // pointer-up and swallow clicks on Apply or the mode buttons.
+    const dismiss = (event: MouseEvent) => {
+      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener("click", dismiss)
+    return () => document.removeEventListener("click", dismiss)
+  }, [open])
   const value = draft.trim()
   const existing = Array.from(new Set(availableLabels))
   const options = existing
@@ -46,12 +58,7 @@ export function TorrentLabelPicker({
   }
 
   return (
-    <div
-      className="space-y-2"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
-      }}
-    >
+    <div ref={root} className="space-y-2">
       <div className="flex flex-wrap gap-2 rounded-2xl border border-muted/30 bg-muted/20 p-3">
         {labels.map((label) => (
           <span

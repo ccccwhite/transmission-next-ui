@@ -135,6 +135,7 @@ export function BatchSetLabelsSelectedDialog({
               <button
                 type="button"
                 disabled={isApplying}
+                aria-pressed={mode === "overwrite"}
                 onClick={() => setMode("overwrite")}
                 className={`flex-1 h-10 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all border ${
                   mode === "overwrite"
@@ -147,6 +148,7 @@ export function BatchSetLabelsSelectedDialog({
               <button
                 type="button"
                 disabled={isApplying}
+                aria-pressed={mode === "append"}
                 onClick={() => setMode("append")}
                 className={`flex-1 h-10 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all border ${
                   mode === "append"
