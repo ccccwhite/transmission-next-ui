@@ -1,5 +1,11 @@
 {
   "common": {
+    "current_torrent_labels": "Current torrent labels",
+    "current_labels_empty": "No labels currently assigned",
+    "current_labels_load_failed": "Could not load current labels. Close and reopen this dialog to retry.",
+    "labels_on_all_selected": "Shared by all selected torrents",
+    "labels_on_some_selected": "Assigned to some selected torrents",
+    "selected_without_labels": "{count} selected torrents have no labels",
     "choose_or_create_label": "Choose an existing label or enter a new one",
     "show_existing_labels": "Show existing labels",
     "available_labels": "Existing labels",

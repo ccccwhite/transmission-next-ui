@@ -1,6 +1,6 @@
 import { useState } from "react"
 import userEvent from "@testing-library/user-event"
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { expect, test, vi, beforeEach } from "vitest"
 import { I18nProvider } from "@/lib/i18n-context"
 import { TorrentLabelPicker } from "./torrent-label-picker"
@@ -128,7 +128,7 @@ test.each(["overwrite", "append"])(
       </I18nProvider>
     )
     await waitFor(() =>
-      expect(rpc.getTorrents).toHaveBeenCalledWith(["labels"])
+      expect(rpc.getTorrents).toHaveBeenCalledWith(["id", "labels"])
     )
     fireEvent.click(
       screen.getByRole("button", { name: "Show existing labels" })
@@ -176,4 +176,41 @@ test("users can create labels even when fetching existing labels fails", async (
   expect(
     screen.getByRole("button", { name: 'Remove label "manual"' })
   ).toBeInTheDocument()
+})
+
+
+test("current labels show the selected torrent only, with legacy labels normalized", async () => {
+  vi.mocked(rpc.getTorrents).mockResolvedValueOnce({ torrents: [
+    { ...MOCK_TORRENTS[0], id: 7, labels: ["mteam", '{"text":"storage:hdd"}'] },
+    { ...MOCK_TORRENTS[0], id: 8, labels: ["unrelated"] }
+  ] })
+  render(<I18nProvider><BatchSetLabelsSelectedDialog open onOpenChange={vi.fn()} selectedIds={[7]} /></I18nProvider>)
+  const current = within(screen.getByRole("region", { name: "Current torrent labels" }))
+  expect(await current.findByText("mteam")).toBeInTheDocument()
+  expect(current.getByText("storage:hdd")).toBeInTheDocument()
+  expect(current.queryByText("unrelated")).not.toBeInTheDocument()
+  expect(rpc.setTorrent).not.toHaveBeenCalled()
+})
+
+test("multiple torrents distinguish common and partial labels and count unlabeled torrents", async () => {
+  vi.mocked(rpc.getTorrents).mockResolvedValue({ torrents: [
+    { ...MOCK_TORRENTS[0], id: 7, labels: ["mteam", "mteam", "storage:hdd"] },
+    { ...MOCK_TORRENTS[0], id: 8, labels: ["mteam"] },
+    { ...MOCK_TORRENTS[0], id: 9, labels: [] }
+  ] })
+  const { rerender } = render(<I18nProvider><BatchSetLabelsSelectedDialog open onOpenChange={vi.fn()} selectedIds={[7, 8]} /></I18nProvider>)
+  const current = within(screen.getByRole("region", { name: "Current torrent labels" }))
+  expect(await current.findByText("Shared by all selected torrents")).toBeInTheDocument()
+  expect(current.getByText("Assigned to some selected torrents")).toBeInTheDocument()
+  expect(current.getByText("2/2")).toBeInTheDocument()
+  expect(current.getByText("1/2")).toBeInTheDocument()
+  rerender(<I18nProvider><BatchSetLabelsSelectedDialog open onOpenChange={vi.fn()} selectedIds={[7, 8, 9]} /></I18nProvider>)
+  expect(await current.findByText("1 selected torrents have no labels")).toBeInTheDocument()
+  expect(current.queryByText("Shared by all selected torrents")).not.toBeInTheDocument()
+})
+
+test("a torrent without labels shows the empty state after loading", async () => {
+  vi.mocked(rpc.getTorrents).mockResolvedValueOnce({ torrents: [{ ...MOCK_TORRENTS[0], id: 7, labels: [] }] })
+  render(<I18nProvider><BatchSetLabelsSelectedDialog open onOpenChange={vi.fn()} selectedIds={[7]} /></I18nProvider>)
+  expect(await screen.findByText("No labels currently assigned")).toBeInTheDocument()
 })

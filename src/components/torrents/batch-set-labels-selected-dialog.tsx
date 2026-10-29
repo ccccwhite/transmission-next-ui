@@ -34,6 +34,8 @@ export function BatchSetLabelsSelectedDialog({
   const [mode, setMode] = React.useState<"overwrite" | "append">("overwrite")
   const [isApplying, setIsApplying] = React.useState(false)
   const [availableLabels, setAvailableLabels] = React.useState<string[]>([])
+  const [currentLabels, setCurrentLabels] = React.useState<{ label: string; count: number }[]>([])
+  const [unlabeledCount, setUnlabeledCount] = React.useState(0)
   const [loadingLabels, setLoadingLabels] = React.useState(false)
   const [labelsLoadFailed, setLabelsLoadFailed] = React.useState(false)
   const { t } = useI18n()
@@ -44,10 +46,25 @@ export function BatchSetLabelsSelectedDialog({
     const fetchLabels = async () => {
       setLoadingLabels(true)
       setLabelsLoadFailed(false)
+      setCurrentLabels([])
+      setUnlabeledCount(0)
       try {
-        const { torrents } = await rpc.getTorrents(["labels"])
+        const { torrents } = await rpc.getTorrents(["id", "labels"])
         const labelSet = new Set(torrents.flatMap(torrent => parseTorrentLabels(torrent.labels)))
-        if (active) setAvailableLabels(Array.from(labelSet).sort())
+        const selected = new Set(selectedIds)
+        const counts = new Map<string, number>()
+        let unlabeled = 0
+        for (const torrent of torrents) {
+          if (!selected.has(torrent.id)) continue
+          const existing = new Set(parseTorrentLabels(torrent.labels))
+          if (!existing.size) unlabeled++
+          existing.forEach(label => counts.set(label, (counts.get(label) ?? 0) + 1))
+        }
+        if (active) {
+          setAvailableLabels(Array.from(labelSet).sort())
+          setCurrentLabels(Array.from(counts, ([label, count]) => ({ label, count })).sort((a, b) => a.label.localeCompare(b.label)))
+          setUnlabeledCount(unlabeled)
+        }
       } catch (error) {
         console.error("Failed to fetch labels:", error)
         if (active) setLabelsLoadFailed(true)
@@ -57,7 +74,7 @@ export function BatchSetLabelsSelectedDialog({
     }
     void fetchLabels()
     return () => { active = false }
-  }, [open])
+  }, [open, selectedIds])
 
   const handleApply = async () => {
     if (isApplying || !selectedIds.length || !labels.length) return
@@ -126,6 +143,42 @@ export function BatchSetLabelsSelectedDialog({
         </DialogHeader>
 
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
+          <section aria-label={t("common.current_torrent_labels")} className="space-y-2">
+            <h3 className="text-xs font-bold text-muted-foreground px-1">{t("common.current_torrent_labels")}</h3>
+            {loadingLabels ? (
+              <p role="status" className="text-xs text-muted-foreground px-1">{t("common.loading_labels")}</p>
+            ) : labelsLoadFailed ? (
+              <p role="status" className="text-xs text-muted-foreground px-1">{t("common.current_labels_load_failed")}</p>
+            ) : (
+              <div className="rounded-2xl border border-muted/50 bg-muted/20 p-3 space-y-3 max-h-40 overflow-y-auto">
+                {currentLabels.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t("common.current_labels_empty")}</p>
+                ) : [true, false].map(common => {
+                  const group = currentLabels.filter(item => (item.count === selectedIds.length) === common)
+                  if (!group.length) return null
+                  return (
+                    <div key={String(common)} className="space-y-2">
+                      {selectedIds.length > 1 && (
+                        <p className="text-xs text-muted-foreground">{t(common ? "common.labels_on_all_selected" : "common.labels_on_some_selected")}</p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {group.map(({ label, count }) => (
+                          <span key={label} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/15 bg-primary/10 px-2 py-1 text-xs break-all">
+                            {label}
+                            {selectedIds.length > 1 && <span className="text-muted-foreground whitespace-nowrap">{count}/{selectedIds.length}</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                {currentLabels.length > 0 && unlabeledCount > 0 && (
+                  <p className="text-xs text-muted-foreground">{t("common.selected_without_labels", { count: unlabeledCount })}</p>
+                )}
+              </div>
+            )}
+          </section>
+
           {/* Mode toggle */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">
