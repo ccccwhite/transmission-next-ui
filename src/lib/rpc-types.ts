@@ -38,6 +38,7 @@ export interface Torrent {
   isFinished: boolean
   isPrivate: boolean
   isStalled: boolean
+  startDate?: number
   trackers?: Tracker[]
   trackerStats?: TrackerStat[]
   files?: TorrentFile[]
@@ -122,6 +123,17 @@ export interface TrackerStat {
   leecherCount: number
   lastAnnounceSucceeded: boolean
   lastAnnounceResult: string
+  announceState?: number
+  nextAnnounceTime?: number
+  lastAnnounceTime?: number
+  lastAnnounceTimedOut?: boolean
+  hasAnnounced?: boolean
+  scrapeState?: number
+  nextScrapeTime?: number
+  lastScrapeTime?: number
+  lastScrapeResult?: string
+  lastScrapeSucceeded?: boolean
+  downloadCount?: number
   isBackup: boolean
 }
 
