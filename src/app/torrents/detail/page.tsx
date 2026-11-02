@@ -19,7 +19,6 @@ import {
   FileText,
   Activity,
   Info,
-  ExternalLink,
   LoaderCircle,
   Save,
   Tag,
