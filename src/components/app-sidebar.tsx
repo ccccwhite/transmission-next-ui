@@ -8,6 +8,7 @@ import {
   ArrowUpCircle,
   PauseCircle,
   CircleAlert,
+  ClockAlert,
   Settings,
 } from "lucide-react"
 
@@ -75,6 +76,7 @@ const data = {
       url: "/error",
       icon: CircleAlert,
     },
+    { title: "Anomalies", url: "/anomaly", icon: ClockAlert },
   ],
   secondary: [
     {
@@ -100,6 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       "Seeding": "common.seeding",
       "Paused": "common.paused",
       "Errors": "common.error",
+      "Anomalies": "common.anomaly",
       "Settings": "common.settings"
     }
     return t(keyMap[title] || title)
@@ -125,14 +128,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      tooltip={item.url === "/error" ? t("common.error_filter_hint") : getTitle(item.title)}
+                      tooltip={item.url === "/error" ? t("common.error_filter_hint") : item.url === "/anomaly" ? t("common.anomaly_filter_hint") : getTitle(item.title)}
                       isActive={isActive}
                       className={cn(
                         "h-11 text-base [&_svg]:size-5 gap-3 transition-all duration-300 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:gap-0",
                         isActive && "bg-primary! text-primary-foreground! shadow-md shadow-primary/20 scale-[1.02] border-none"
                       )}
                     >
-                      <Link to={item.url} title={item.url === "/error" ? t("common.error_filter_hint") : undefined}>
+                      <Link to={item.url} title={item.url === "/error" ? t("common.error_filter_hint") : item.url === "/anomaly" ? t("common.anomaly_filter_hint") : undefined}>
                         <item.icon className={cn("transition-transform duration-300", isActive && "scale-110", item.url === "/error" && !isActive && "text-destructive")} />
                         <span className="font-semibold group-data-[collapsible=icon]:hidden">{getTitle(item.title)}</span>
                         <span className="ml-auto text-xs tabular-nums opacity-60 group-data-[collapsible=icon]:hidden">{filterTorrents(torrents, { statusFilter: item.url === "/" ? undefined : item.url.slice(1), translateStatus: t }).length}</span>
