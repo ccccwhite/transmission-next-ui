@@ -32,12 +32,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { RemoveTorrentDialog } from "@/components/torrents/remove-torrent-dialog"
 import { TorrentFileSelector } from "@/components/torrents/torrent-file-selector"
+import { TrackerStatusPanel } from "@/components/torrents/tracker-status-panel"
 
 import { rpc } from "@/lib/rpc-client"
 import { getTorrentProgress, isCheckingTorrent } from "@/lib/torrent-progress"
 import { useI18n } from "@/lib/i18n-context"
 import { useAppSettings } from "@/lib/app-settings-context"
-import { type Torrent, type TrackerStat, type Peer, TorrentStatus } from "@/lib/rpc-types"
+import { type Torrent, type Peer, TorrentStatus } from "@/lib/rpc-types"
 import { formatSize, formatSpeed, formatDuration, getStatusLabel, formatDate } from "@/lib/formatters"
 import { parseTorrentLabel } from "@/lib/torrent-labels"
 import {
@@ -466,30 +467,7 @@ function TorrentDetailsContent() {
             )}
 
             {activeTab === "trackers" && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 min-w-[700px] md:min-w-0">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow className="hover:bg-transparent border-none">
-                      <TableHead className="pl-6 md:pl-8 h-12 uppercase font-medium text-[10px] md:text-xs tracking-widest">{t('details.tracker_url')}</TableHead>
-                      <TableHead className="h-12 uppercase font-medium text-[10px] md:text-xs tracking-widest text-right">Seeds</TableHead>
-                      <TableHead className="h-12 uppercase font-medium text-[10px] md:text-xs tracking-widest pr-6 md:pr-8 text-right">Peers</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tor.trackerStats?.map((tr: TrackerStat, idx: number) => (
-                      <TableRow key={idx} className="hover:bg-muted/30 transition-colors border-b last:border-0 border-muted/30">
-                        <TableCell className="font-medium pl-6 md:pl-8 py-4 flex items-center gap-3 group">
-                          <Globe className="h-4 w-4 text-blue-500 opacity-40 group-hover:opacity-100 transition-opacity" />
-                          <span className="truncate max-w-[200px] md:max-w-[400px] text-xs">{tr.announce}</span>
-                          <ExternalLink className="h-3 w-3 ml-2 opacity-0 group-hover:opacity-100 cursor-pointer" />
-                        </TableCell>
-                        <TableCell className="font-medium text-right tabular-nums text-xs">{tr.seederCount}</TableCell>
-                        <TableCell className="pr-6 md:pr-8 text-right font-medium tabular-nums text-xs">{tr.leecherCount}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <TrackerStatusPanel stats={tor.trackerStats ?? []} />
             )}
 
             {activeTab === "peers" && (
