@@ -185,7 +185,9 @@
     "set_labels_overwrite_hint": "替换选中种子的所有现有标签",
     "set_labels_append_hint": "在选中种子的现有标签基础上添加新标签",
     "set_labels_confirm": "应用到 {count} 个种子",
-    "set_labels_success": "已成功为 {count} 个种子设置标签"
+    "set_labels_success": "已成功为 {count} 个种子设置标签",
+    "anomaly": "异常",
+    "anomaly_filter_hint": "正在做种，且所有主要 Tracker 没有 Announce 计划，或计划逾期超过15分钟"
   },
   "details": {
     "general": "常规",
@@ -222,7 +224,24 @@
     "tracker_url": "Tracker 地址",
     "address": "地址",
     "client": "客户端",
-    "country": "国家/地区"
+    "country": "国家/地区",
+    "no_tracker_stats": "没有 Tracker 数据",
+    "tracker_backup": "备用 Tracker",
+    "announce_state": "Announce 状态",
+    "last_announce": "上次汇报",
+    "next_announce": "下次汇报",
+    "last_scrape": "上次 Scrape",
+    "next_scrape": "下次 Scrape",
+    "scrape_state": "Scrape 状态",
+    "announce_result": "Announce 结果",
+    "scrape_result": "Scrape 结果",
+    "no_announce_plan": "无汇报计划",
+    "announce_unscheduled": "无汇报计划",
+    "announce_overdue": "汇报计划逾期",
+    "announce_success": "汇报正常",
+    "announce_failed": "汇报失败",
+    "announce_waiting": "正在等待",
+    "announce_timing_hint": "Announce 与 Scrape 状态独立显示；异常筛选只检查真正做种的种子。"
   },
   "settings": {
     "title": "服务器设置",
