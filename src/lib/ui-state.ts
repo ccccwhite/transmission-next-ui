@@ -66,7 +66,8 @@ export const TORRENT_ROUTES = [
   "/downloading",
   "/seeding",
   "/paused",
-  "/error"
+  "/error",
+  "/anomaly"
 ]
 export const isTorrentRoute = (value: unknown): value is string =>
   typeof value === "string" && TORRENT_ROUTES.includes(value)
