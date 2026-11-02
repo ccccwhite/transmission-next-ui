@@ -114,6 +114,7 @@ export const BASE_RPC_FIELDS = [
   "error",
   "errorString",
   "addedDate",
+  "startDate",
   "recheckProgress"
 ]
 
