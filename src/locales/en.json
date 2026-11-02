@@ -178,7 +178,9 @@
     "set_labels_overwrite_hint": "Replace all existing labels on selected torrents",
     "set_labels_append_hint": "Add new labels to existing labels on selected torrents",
     "set_labels_confirm": "Apply to {count} torrents",
-    "set_labels_success": "Successfully set labels for {count} torrents"
+    "set_labels_success": "Successfully set labels for {count} torrents",
+    "anomaly": "Anomalies",
+    "anomaly_filter_hint": "Seeding torrents with no scheduled Announce on primary trackers or overdue by over 15 minutes"
   },
   "details": {
     "general": "General",
@@ -215,7 +217,24 @@
     "tracker_url": "Tracker URL",
     "address": "Address",
     "client": "Client",
-    "country": "Country"
+    "country": "Country",
+    "no_tracker_stats": "No Tracker data",
+    "tracker_backup": "Backup Tracker",
+    "announce_state": "Announce state",
+    "last_announce": "Last announce",
+    "next_announce": "Next announce",
+    "last_scrape": "Last scrape",
+    "next_scrape": "Next scrape",
+    "scrape_state": "Scrape state",
+    "announce_result": "Announce result",
+    "scrape_result": "Scrape result",
+    "no_announce_plan": "No announcement scheduled",
+    "announce_unscheduled": "Not scheduled",
+    "announce_overdue": "Announce overdue",
+    "announce_success": "Announce OK",
+    "announce_failed": "Announce failed",
+    "announce_waiting": "Waiting",
+    "announce_timing_hint": "Announce and Scrape are shown separately; the anomaly filter only checks active seeding torrents."
   },
   "settings": {
     "title": "Server Settings",
