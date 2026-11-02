@@ -2,6 +2,7 @@ import { getStatusLabel } from "./formatters.ts"
 import type { Torrent } from "./rpc-types.ts"
 import { getTorrentLabelsSortValue, parseTorrentLabel } from "./torrent-labels.ts"
 import { getTorrentProgress } from "./torrent-progress"
+import { torrentTimingIssue } from "./tracker-health"
 
 export type SortKey =
   | "name"
@@ -87,6 +88,8 @@ export function filterTorrents(torrents: Torrent[], options: TorrentFilterOption
         if (![6, 5].includes(torrent.status)) return false
       } else if (statusLower === "stopped" || statusLower === "paused") {
         if (torrent.status !== 0) return false
+      } else if (statusLower === "anomaly") {
+        if (!torrentTimingIssue(torrent)) return false
       } else if (statusLower === "error") {
         if (!(torrent.error > 0)) return false
       } else if (!translateStatus(getStatusLabel(torrent.status)).toLowerCase().includes(statusLower)) {
